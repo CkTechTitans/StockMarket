@@ -197,5 +197,7 @@ if __name__ == "__main__":
     print(f"  URL  : http://localhost:5000")
     print("=" * 52 + "\n")
 
+    #port = int(os.environ.get("PORT", 5000))
+    #app.run(host="0.0.0.0", port=port, debug=not is_prod)
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=not is_prod)
+    app.run(host="0.0.0.0", port=port)
