@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Market Pulse — Indian Stocks</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/styles.css"/>
+</head>
+<body>
+
+<!-- ═══ REPLACE YOUR EXISTING <header> WITH THIS ═══ -->
+<header>
+  <div class="logo"><div class="logo-dot"></div>Market Pulse</div>
+  <div class="header-right">
+    <span class="last-updated" id="lastUpdated">—</span>
+    <button class="btn btn-ghost" id="refreshBtn" onclick="loadStocks()">
+      <svg id="refreshIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/>
+        <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/>
+      </svg>
+      Refresh
+    </button>
+    <button class="btn btn-primary" onclick="openAddModal()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Add Stock
+    </button>
+ 
+    <!-- User menu -->
+    <div class="user-menu" id="userMenu" style="display:none">
+      <div class="user-avatar" id="userAvatar" onclick="toggleUserDropdown()">?</div>
+      <div class="user-dropdown" id="userDropdown">
+        <div class="user-dropdown-info">
+          <div class="user-dropdown-name" id="dropdownName">—</div>
+          <div class="user-dropdown-email" id="dropdownEmail">—</div>
+        </div>
+        <div class="user-dropdown-divider"></div>
+        <a href="/profile.html" class="user-dropdown-item">👤 My Profile</a>
+        <a href="/auth/logout" class="user-dropdown-item danger">🚪 Logout</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="summary-bar">
+    <div class="summary-card">
+      <div class="summary-label">Watchlist</div>
+      <div class="summary-value" id="totalCount">0</div>
+      <div class="summary-sub">Stocks tracked</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">Gainers</div>
+      <div class="summary-value" id="gainersCount" style="color:var(--green)">—</div>
+      <div class="summary-sub">Stocks up today</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">Losers</div>
+      <div class="summary-value" id="losersCount" style="color:var(--red)">—</div>
+      <div class="summary-sub">Stocks down today</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">Avg Change</div>
+      <div class="summary-value" id="avgChange">—</div>
+      <div class="summary-sub">Across watchlist</div>
+    </div>
+  </div>
+  <div class="section-header">
+    <div class="section-title">My Watchlist <span class="stock-count" id="stockCount">0</span></div>
+  </div>
+  <div class="stock-grid" id="stockGrid"></div>
+</main>
+
+<!-- ADD STOCK MODAL -->
+<div class="add-overlay" id="addOverlay" onclick="closeAddModal(event)">
+  <div class="add-modal">
+    <div class="add-modal-header">
+      <div>
+        <div class="add-modal-title">Add Stock to Watchlist</div>
+        <div class="add-modal-sub">NSE/BSE listed Indian stocks</div>
+      </div>
+      <button class="close-btn" onclick="closeAddModalDirect()">✕</button>
+    </div>
+    <div class="form-group">
+      <div class="form-label">Stock Symbol</div>
+      <input class="form-input" id="symbolInput" placeholder="e.g. TCS, RELIANCE, VMM" autocomplete="off" onkeydown="if(event.key==='Enter') submitAdd()"/>
+      <div class="form-hint">Enter the NSE ticker symbol</div>
+    </div>
+    <div class="form-group">
+      <div class="form-label">Company Name <span style="color:var(--muted);font-weight:400;text-transform:none">(optional)</span></div>
+      <input class="form-input" id="nameInput" placeholder="e.g. Tata Consultancy Services" autocomplete="off" onkeydown="if(event.key==='Enter') submitAdd()"/>
+    </div>
+    <div class="popular-label">Popular Stocks</div>
+    <div class="popular-chips">
+      <div class="chip" onclick="quickAdd('RELIANCE','Reliance Industries')">RELIANCE</div>
+      <div class="chip" onclick="quickAdd('TCS','Tata Consultancy Services')">TCS</div>
+      <div class="chip" onclick="quickAdd('INFY','Infosys')">INFY</div>
+      <div class="chip" onclick="quickAdd('HDFCBANK','HDFC Bank')">HDFCBANK</div>
+      <div class="chip" onclick="quickAdd('ICICIBANK','ICICI Bank')">ICICIBANK</div>
+      <div class="chip" onclick="quickAdd('WIPRO','Wipro')">WIPRO</div>
+      <div class="chip" onclick="quickAdd('SBIN','State Bank of India')">SBIN</div>
+      <div class="chip" onclick="quickAdd('BEL','Bharat Electronics')">BEL</div>
+      <div class="chip" onclick="quickAdd('LT','Larsen & Toubro')">LT</div>
+      <div class="chip" onclick="quickAdd('BAJFINANCE','Bajaj Finance')">BAJFINANCE</div>
+      <div class="chip" onclick="quickAdd('TATAMOTORS','Tata Motors')">TATAMOTORS</div>
+      <div class="chip" onclick="quickAdd('ADANIENT','Adani Enterprises')">ADANIENT</div>
+      <div class="chip" onclick="quickAdd('MARUTI','Maruti Suzuki')">MARUTI</div>
+      <div class="chip" onclick="quickAdd('TITAN','Titan Company')">TITAN</div>
+      <div class="chip" onclick="quickAdd('GROWW','Billionbrains Garage Ventures')">GROWW</div>
+      <div class="chip" onclick="quickAdd('VMM','Vishal Mega Mart')">VMM</div>
+    </div>
+    <div class="add-error" id="addError"></div>
+    <div class="add-success" id="addSuccess"></div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeAddModalDirect()">Cancel</button>
+      <button class="btn btn-primary" style="flex:2" id="addBtn" onclick="submitAdd()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add to Watchlist
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- STOCK DETAIL MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-topbar">
+      <div class="modal-sym-wrap">
+        <div class="modal-sym-badge" id="mBadge"></div>
+        <div class="modal-company" id="mCompany"></div>
+      </div>
+      <button class="close-btn" onclick="closeModalDirect()">✕</button>
+    </div>
+    <div class="modal-price-hero">
+      <div class="modal-price" id="mPrice"></div>
+      <div class="modal-change-badge" id="mChangeBadge"></div>
+    </div>
+    <div class="modal-tabs">
+      <button class="tab-btn active" onclick="switchTab('chart',this)">📈 Chart</button>
+      <button class="tab-btn" onclick="switchTab('ai',this)">🤖 AI Analysis</button>
+    </div>
+    <div class="tab-panel active" id="tab-chart">
+      <div class="chart-controls">
+        <div class="chart-title">Price History</div>
+        <div class="period-btns">
+          <button class="period-btn active" onclick="changePeriod(7,this)">1W</button>
+          <button class="period-btn" onclick="changePeriod(30,this)">1M</button>
+          <button class="period-btn" onclick="changePeriod(60,this)">2M</button>
+          <button class="period-btn" onclick="changePeriod(90,this)">3M</button>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="priceChart"></canvas>
+        <div class="chart-loading" id="chartLoading">Loading chart…</div>
+      </div>
+      <div class="ohlv-grid">
+        <div class="ohlv-item"><div class="ohlv-label">Open</div><div class="ohlv-val" id="dOpen"></div></div>
+        <div class="ohlv-item"><div class="ohlv-label">High</div><div class="ohlv-val" id="dHigh" style="color:#34d399"></div></div>
+        <div class="ohlv-item"><div class="ohlv-label">Low</div><div class="ohlv-val" id="dLow" style="color:#fb7185"></div></div>
+        <div class="ohlv-item"><div class="ohlv-label">Prev Close</div><div class="ohlv-val" id="dPrev"></div></div>
+        <div class="ohlv-item"><div class="ohlv-label">Volume</div><div class="ohlv-val" id="dVol"></div></div>
+        <div class="ohlv-item"><div class="ohlv-label">Date</div><div class="ohlv-val" id="dDate" style="font-size:.8rem"></div></div>
+      </div>
+    </div>
+    <div class="tab-panel" id="tab-ai">
+      <div id="aiContent"><div class="ai-loading"><div class="ai-spinner"></div>Analysing with Gemini AI…</div></div>
+    </div>
+  </div>
+</div>
+
+
+
+<script src="js/stocks.js"></script>
+<script src="js/modal.js"></script>
+<script src="js/chatbot.js"></script>
+<script>loadStocks();</script>
+<script>
+async function loadUserHeader() {
+  try {
+    const res  = await fetch('/auth/me');
+    if (!res.ok) return;
+    const user = await res.json();
+    if (!user.logged_in) return;
+ 
+    const menu = document.getElementById('userMenu');
+    const avatar = document.getElementById('userAvatar');
+    menu.style.display = 'block';
+ 
+    // Set avatar — photo or initial
+    if (user.picture) {
+      avatar.innerHTML = `<img src="${user.picture}" onerror="this.parentElement.textContent='${user.name[0].toUpperCase()}'"/>`;
+    } else {
+      avatar.textContent = user.name[0].toUpperCase();
+    }
+ 
+    document.getElementById('dropdownName').textContent  = user.name;
+    document.getElementById('dropdownEmail').textContent = user.email;
+  } catch(e) {}
+}
+ 
+function toggleUserDropdown() {
+  document.getElementById('userDropdown').classList.toggle('open');
+}
+ 
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+  const menu = document.getElementById('userMenu');
+  if (menu && !menu.contains(e.target)) {
+    document.getElementById('userDropdown').classList.remove('open');
+  }
+});
+ 
+loadUserHeader();
+</script>
+</body>
+</html>

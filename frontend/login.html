@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Market Pulse — Sign In</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#0d0f14;--card:#13161e;--border:#252a38;--text:#e8eaf0;--muted:#6b7280;--accent:#00d09c;--red:#eb5757;--font:'DM Sans',sans-serif;--mono:'JetBrains Mono',monospace}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,208,156,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,208,156,.04) 1px,transparent 1px);background-size:40px 40px;pointer-events:none}
+body::after{content:'';position:fixed;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(0,208,156,.1) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-60%);pointer-events:none}
+.card{position:relative;z-index:1;background:var(--card);border:1px solid var(--border);border-radius:24px;padding:40px 36px;width:100%;max-width:420px;box-shadow:0 24px 64px rgba(0,0,0,.5);animation:fadeUp .5s cubic-bezier(.4,0,.2,1) forwards}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.logo-wrap{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:28px}
+.logo-dot{width:12px;height:12px;border-radius:50%;background:var(--accent);box-shadow:0 0 16px var(--accent);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 8px var(--accent)}50%{box-shadow:0 0 24px var(--accent)}}
+.logo-text{font-size:1.4rem;font-weight:700;letter-spacing:-.5px}
+.page-title{font-size:1.5rem;font-weight:700;text-align:center;margin-bottom:6px;letter-spacing:-.5px}
+.page-sub{font-size:.85rem;color:var(--muted);text-align:center;margin-bottom:28px;line-height:1.6}
+
+/* Tabs */
+.tabs{display:flex;background:#0d0f14;border-radius:10px;padding:4px;margin-bottom:24px;border:1px solid var(--border)}
+.tab{flex:1;padding:8px;text-align:center;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s;color:var(--muted);border:none;background:none;font-family:var(--font)}
+.tab.active{background:var(--card);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+
+/* Forms */
+.form-panel{display:none}.form-panel.active{display:block}
+.form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.form-label{font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}
+.form-input{background:#0d0f14;border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:var(--font);font-size:.88rem;outline:none;transition:border-color .2s;width:100%}
+.form-input:focus{border-color:rgba(0,208,156,.5)}
+.form-input::placeholder{color:var(--muted)}
+.form-btn{width:100%;padding:12px;border-radius:10px;border:none;background:var(--accent);color:#0d0f14;font-family:var(--font);font-size:.9rem;font-weight:700;cursor:pointer;transition:all .2s;margin-top:4px}
+.form-btn:hover{background:#00b88a;transform:translateY(-1px)}
+.form-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.msg{border-radius:10px;padding:10px 14px;font-size:.82rem;margin-bottom:12px;display:none}
+.msg.error{background:rgba(235,87,87,.1);border:1px solid rgba(235,87,87,.3);color:var(--red)}
+.msg.success{background:rgba(0,208,156,.1);border:1px solid rgba(0,208,156,.3);color:var(--accent)}
+.msg.show{display:block}
+
+/* Divider */
+.divider{display:flex;align-items:center;gap:12px;margin:20px 0;color:var(--muted);font-size:.78rem}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* Google btn */
+.google-btn{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;padding:12px 20px;background:#fff;color:#1f2937;border:none;border-radius:10px;font-family:var(--font);font-size:.9rem;font-weight:600;cursor:pointer;transition:all .2s;box-shadow:0 2px 12px rgba(0,0,0,.3);text-decoration:none}
+.google-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.4)}
+
+/* Features */
+.features{display:flex;flex-direction:column;gap:8px;margin-top:24px;padding-top:20px;border-top:1px solid var(--border)}
+.feature{display:flex;align-items:center;gap:10px;font-size:.8rem;color:var(--muted)}
+.feature-icon{width:26px;height:26px;border-radius:7px;background:rgba(0,208,156,.1);border:1px solid rgba(0,208,156,.2);display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0}
+
+/* Responsive */
+@media(max-width:480px){
+  .card{padding:28px 20px;border-radius:18px}
+  .page-title{font-size:1.3rem}
+}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo-wrap">
+    <div class="logo-dot"></div>
+    <div class="logo-text">Market Pulse</div>
+  </div>
+  <div class="page-title">Welcome back</div>
+  <div class="page-sub">Your Indian stock market dashboard</div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('login')">Sign In</button>
+    <button class="tab" onclick="switchTab('register')">Register</button>
+  </div>
+
+  <!-- Login Panel -->
+  <div class="form-panel active" id="panelLogin">
+    <div class="msg error" id="loginErr"></div>
+    <div class="form-group">
+      <div class="form-label">Email</div>
+      <input class="form-input" id="loginEmail" type="email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <div class="form-group">
+      <div class="form-label">Password</div>
+      <input class="form-input" id="loginPass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <button class="form-btn" id="loginBtn" onclick="doLogin()">Sign In</button>
+    <div class="divider">or continue with</div>
+    <a href="/auth/login" class="google-btn">
+      <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+      </svg>
+      Continue with Google
+    </a>
+  </div>
+
+  <!-- Register Panel -->
+  <div class="form-panel" id="panelRegister">
+    <div class="msg error" id="regErr"></div>
+    <div class="msg success" id="regOk"></div>
+    <div class="form-group">
+      <div class="form-label">Full Name</div>
+      <input class="form-input" id="regName" type="text" placeholder="Your name" onkeydown="if(event.key==='Enter')doRegister()"/>
+    </div>
+    <div class="form-group">
+      <div class="form-label">Email</div>
+      <input class="form-input" id="regEmail" type="email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')doRegister()"/>
+    </div>
+    <div class="form-group">
+      <div class="form-label">Password</div>
+      <input class="form-input" id="regPass" type="password" placeholder="Min 6 characters" onkeydown="if(event.key==='Enter')doRegister()"/>
+    </div>
+    <button class="form-btn" id="regBtn" onclick="doRegister()">Create Account</button>
+    <div class="divider">or continue with</div>
+    <a href="/auth/login" class="google-btn">
+      <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+      </svg>
+      Continue with Google
+    </a>
+  </div>
+
+  <!-- Features -->
+  <div class="features">
+    <div class="feature"><div class="feature-icon">📈</div>Live NSE/BSE quotes</div>
+    <div class="feature"><div class="feature-icon">🤖</div>Gemini AI analysis</div>
+    <div class="feature"><div class="feature-icon">💼</div>Portfolio P&L tracker</div>
+    <div class="feature"><div class="feature-icon">☁️</div>Data saved — never lost</div>
+  </div>
+</div>
+
+<script>
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')));
+  document.getElementById('panelLogin').classList.toggle('active', tab==='login');
+  document.getElementById('panelRegister').classList.toggle('active', tab==='register');
+}
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPass').value;
+  const errEl = document.getElementById('loginErr');
+  const btn   = document.getElementById('loginBtn');
+  if (!email || !pass) { showMsg(errEl,'Email and password required'); return; }
+  btn.disabled = true; btn.textContent = 'Signing in...';
+  try {
+    const res  = await fetch('/auth/email-login', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
+    const data = await res.json();
+    if (!res.ok) { showMsg(errEl, data.error); return; }
+    window.location.href = '/';
+  } catch(e) { showMsg(errEl, 'Server error. Is the backend running?'); }
+  finally { btn.disabled=false; btn.textContent='Sign In'; }
+}
+
+async function doRegister() {
+  const name  = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const pass  = document.getElementById('regPass').value;
+  const errEl = document.getElementById('regErr');
+  const okEl  = document.getElementById('regOk');
+  const btn   = document.getElementById('regBtn');
+  if (!name||!email||!pass) { showMsg(errEl,'All fields are required'); return; }
+  btn.disabled=true; btn.textContent='Creating account...';
+  try {
+    const res  = await fetch('/auth/register', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,password:pass})});
+    const data = await res.json();
+    if (!res.ok) { showMsg(errEl, data.error); return; }
+    showMsg(okEl,'Account created! Redirecting...');
+    setTimeout(()=>window.location.href='/', 1000);
+  } catch(e) { showMsg(errEl,'Server error. Is the backend running?'); }
+  finally { btn.disabled=false; btn.textContent='Create Account'; }
+}
+
+function showMsg(el, text) {
+  el.textContent = text;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 4000);
+}
+
+// Show error from URL params (e.g. Google auth failed)
+const params = new URLSearchParams(window.location.search);
+if (params.get('error')) {
+  const errEl = document.getElementById('loginErr');
+  showMsg(errEl, 'Google sign-in failed. Please try again.');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Market Pulse — Profile</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#0d0f14;--card:#13161e;--border:#252a38;--text:#e8eaf0;--muted:#6b7280;--accent:#00d09c;--red:#eb5757;--font:'DM Sans',sans-serif;--mono:'JetBrains Mono',monospace}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,208,156,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,208,156,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none}
+
+/* Header */
+header{position:sticky;top:0;z-index:100;background:rgba(13,15,20,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:8px;font-size:1.1rem;font-weight:700;text-decoration:none;color:var(--text)}
+.logo-dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent)}
+.header-right{display:flex;align-items:center;gap:10px}
+.btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-family:var(--font);font-size:.8rem;font-weight:600;cursor:pointer;transition:all .2s;border:1px solid transparent;text-decoration:none}
+.btn-ghost{background:rgba(255,255,255,.06);border-color:var(--border);color:var(--muted)}
+.btn-ghost:hover{color:var(--text);border-color:rgba(255,255,255,.2)}
+.btn-danger{background:rgba(235,87,87,.1);border-color:rgba(235,87,87,.3);color:var(--red)}
+.btn-danger:hover{background:rgba(235,87,87,.2)}
+
+/* Main */
+main{position:relative;z-index:1;max-width:640px;margin:0 auto;padding:32px 16px}
+
+/* Profile card */
+.profile-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:32px;margin-bottom:20px;text-align:center}
+.avatar-wrap{position:relative;display:inline-block;margin-bottom:16px}
+.avatar{width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid rgba(0,208,156,.3)}
+.avatar-fallback{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#00876a);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;color:#0d0f14;border:3px solid rgba(0,208,156,.3)}
+.auth-badge{position:absolute;bottom:2px;right:2px;width:22px;height:22px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:.75rem;border:2px solid var(--card)}
+.profile-name{font-size:1.3rem;font-weight:700;margin-bottom:4px}
+.profile-email{font-size:.85rem;color:var(--muted);margin-bottom:16px}
+.profile-joined{font-size:.75rem;color:var(--muted);font-family:var(--mono)}
+
+/* Info grid */
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px;text-align:left}
+.info-box{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px;padding:14px}
+.info-label{font-size:.67rem;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px}
+.info-value{font-size:.9rem;font-weight:600;font-family:var(--mono)}
+
+/* Stats */
+.stats-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px;margin-bottom:20px}
+.stats-title{font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:16px}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.stat-box{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center}
+.stat-num{font-size:1.4rem;font-weight:700;font-family:var(--mono);color:var(--accent)}
+.stat-label{font-size:.72rem;color:var(--muted);margin-top:4px}
+
+/* Actions */
+.actions-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px}
+.actions-title{font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:16px}
+.action-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)}
+.action-row:last-child{border-bottom:none;padding-bottom:0}
+.action-left{display:flex;align-items:center;gap:12px}
+.action-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem}
+.action-name{font-size:.88rem;font-weight:600}
+.action-sub{font-size:.75rem;color:var(--muted);margin-top:2px}
+.action-btn{padding:7px 14px;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;font-family:var(--font);border:1px solid;transition:all .18s}
+
+/* Responsive */
+@media(max-width:480px){
+  .info-grid{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  main{padding:20px 12px}
+  .profile-card,.stats-card,.actions-card{padding:20px 16px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="/" class="logo"><div class="logo-dot"></div>Market Pulse</a>
+  <div class="header-right">
+    <a href="/" class="btn btn-ghost">← Dashboard</a>
+    <a href="/auth/logout" class="btn btn-danger">Logout</a>
+  </div>
+</header>
+
+<main>
+  <!-- Profile Card -->
+  <div class="profile-card">
+    <div class="avatar-wrap" id="avatarWrap">
+      <div class="avatar-fallback" id="avatarFallback">?</div>
+    </div>
+    <div class="profile-name" id="profileName">Loading...</div>
+    <div class="profile-email" id="profileEmail"></div>
+    <div class="profile-joined" id="profileJoined"></div>
+
+    <div class="info-grid">
+      <div class="info-box">
+        <div class="info-label">Auth Method</div>
+        <div class="info-value" id="authMethod">—</div>
+      </div>
+      <div class="info-box">
+        <div class="info-label">Member Since</div>
+        <div class="info-value" id="memberSince">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-card">
+    <div class="stats-title">Your Activity</div>
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-num" id="statWatchlist">—</div>
+        <div class="stat-label">Watchlist</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" id="statPortfolio">—</div>
+        <div class="stat-label">Holdings</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" style="color:#f59e0b">AI</div>
+        <div class="stat-label">Powered</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="actions-card">
+    <div class="actions-title">Account</div>
+
+    <div class="action-row">
+      <div class="action-left">
+        <div class="action-icon" style="background:rgba(0,208,156,.1)">📈</div>
+        <div>
+          <div class="action-name">Dashboard</div>
+          <div class="action-sub">View your watchlist</div>
+        </div>
+      </div>
+      <a href="/" class="action-btn" style="background:rgba(0,208,156,.1);border-color:rgba(0,208,156,.3);color:var(--accent)">Open</a>
+    </div>
+
+    <div class="action-row">
+      <div class="action-left">
+        <div class="action-icon" style="background:rgba(245,158,11,.1)">🔔</div>
+        <div>
+          <div class="action-name">Notifications</div>
+          <div class="action-sub">Coming soon</div>
+        </div>
+      </div>
+      <button class="action-btn" style="background:rgba(255,255,255,.04);border-color:var(--border);color:var(--muted);cursor:not-allowed" disabled>Soon</button>
+    </div>
+
+    <div class="action-row">
+      <div class="action-left">
+        <div class="action-icon" style="background:rgba(235,87,87,.1)">🚪</div>
+        <div>
+          <div class="action-name">Sign Out</div>
+          <div class="action-sub">Log out of your account</div>
+        </div>
+      </div>
+      <a href="/auth/logout" class="action-btn" style="background:rgba(235,87,87,.1);border-color:rgba(235,87,87,.3);color:var(--red)">Logout</a>
+    </div>
+  </div>
+</main>
+
+<script>
+async function loadProfile() {
+  try {
+    // Load user info
+    const res  = await fetch('/auth/me');
+    if (!res.ok) { window.location.href = '/login.html'; return; }
+    const user = await res.json();
+
+    // Avatar
+    if (user.picture) {
+      document.getElementById('avatarWrap').innerHTML =
+        `<img class="avatar" src="${user.picture}" onerror="this.style.display='none'"/>
+         <div class="auth-badge">G</div>`;
+    } else {
+      document.getElementById('avatarFallback').textContent = user.name[0].toUpperCase();
+    }
+
+    document.getElementById('profileName').textContent  = user.name;
+    document.getElementById('profileEmail').textContent = user.email;
+    document.getElementById('authMethod').textContent   = user.auth_type === 'google' ? '🔵 Google' : '📧 Email';
+    document.getElementById('memberSince').textContent  = user.joined || '—';
+
+    // Load stats
+    const [wRes, pRes] = await Promise.all([
+      fetch('/api/watchlist'),
+      fetch('/api/portfolio')
+    ]);
+    const watchlist = wRes.ok ? await wRes.json() : [];
+    const portfolio = pRes.ok ? await pRes.json() : [];
+
+    document.getElementById('statWatchlist').textContent = watchlist.length;
+    document.getElementById('statPortfolio').textContent = portfolio.length;
+
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+loadProfile();
+</script>
+</body>
+</html>

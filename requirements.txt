@@ -1,0 +1,12 @@
+flask
+flask-cors
+flask-login
+authlib
+yfinance
+google-genai
+psycopg2-binary
+python-dotenv
+pandas
+numpy
+requests
+gunicorn
