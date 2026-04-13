@@ -4,8 +4,8 @@
    General Indian stock market assistant
    ═══════════════════════════════════════════════ */
 
-const CHAT_API = "http://localhost:5000/api/chat";
-
+//const CHAT_API = "http://localhost:5000/api/chat";
+const API = "";
 let chatOpen    = false;
 let chatHistory = [];
 

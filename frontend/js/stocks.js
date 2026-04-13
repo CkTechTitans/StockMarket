@@ -1,6 +1,7 @@
 // stocks.js — watchlist management + card rendering
 
-const API = "http://localhost:5000";
+//const API = "http://localhost:5000";
+const API = "";
 let stockData = [];
 let watchlist = [];
 
