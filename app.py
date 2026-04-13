@@ -26,6 +26,7 @@ import stock_fetcher   as sf
 import gemini_analysis as ga
 import chatbot         as cb
 import database        as db
+import technical_analysis as ta   # ← ADD THIS LINE
 from auth   import auth_bp, init_oauth
 from models import User
 
@@ -165,6 +166,13 @@ def analyze(symbol):
         return jsonify(ga.analyze_stock(stock, chart))
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+@app.route("/api/chart/<symbol>", methods=["GET"])
+@login_required
+def get_enriched_chart(symbol): ...
+
+@app.route("/api/stock/<symbol>/recommendation", methods=["GET"])
+@login_required
+def get_recommendation(symbol): ...
 
 @app.route("/api/chat", methods=["POST"])
 @login_required
