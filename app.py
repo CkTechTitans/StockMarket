@@ -87,9 +87,9 @@ def index():
 def serve_login():
     return send_from_directory(FRONTEND, "login.html")
 
-@app.route("/profile.html")
+@app.route("/Profile.html")
 def serve_profile():
-    return send_from_directory(FRONTEND, "profile.html")
+    return send_from_directory(FRONTEND, "Profile.html")
 
 @app.route("/<path:filename>")
 def static_files(filename):
