@@ -16,7 +16,6 @@ print(f"[startup] ROOT     = {ROOT}")
 print(f"[startup] FRONTEND = {FRONTEND}")
 print(f"[startup] frontend exists = {os.path.exists(FRONTEND)}")
 print(f"[startup] index.html exists = {os.path.exists(os.path.join(FRONTEND, 'index.html'))}")
-print(f"[startup] login.html exists = {os.path.exists(os.path.join(FRONTEND, 'login.html'))}")
 
 from flask import Flask, jsonify, send_from_directory, request, redirect
 from flask_cors import CORS
@@ -34,17 +33,16 @@ from models import User
 app = Flask(__name__, static_folder=FRONTEND, static_url_path="")
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-this")
 
-# ── CRITICAL: Tell Flask it's behind Render's HTTPS proxy ────────────────────
+# ── Critical: proxy fix for Render HTTPS ─────────────────────────────────────
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
-# ── Session cookie settings for HTTPS on Render ───────────────────────────────
 is_prod = bool(os.environ.get("DATABASE_URL"))
 app.config.update(
-    SESSION_COOKIE_SECURE   = is_prod,       # HTTPS only on Render
-    SESSION_COOKIE_HTTPONLY = True,
-    SESSION_COOKIE_SAMESITE = "Lax",
-    REMEMBER_COOKIE_SECURE  = is_prod,
-    REMEMBER_COOKIE_HTTPONLY= True,
+    SESSION_COOKIE_SECURE    = is_prod,
+    SESSION_COOKIE_HTTPONLY  = True,
+    SESSION_COOKIE_SAMESITE  = "Lax",
+    REMEMBER_COOKIE_SECURE   = is_prod,
+    REMEMBER_COOKIE_HTTPONLY = True,
 )
 
 CORS(app, supports_credentials=True)
@@ -73,21 +71,22 @@ with app.app_context():
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  FRONTEND ROUTES
+#  NOTE: / and /index.html have NO @login_required
+#  Auth is checked by the frontend JS itself via /auth/me
 # ══════════════════════════════════════════════════════════════════════════════
+
+@app.route("/")
+def index():
+    """Serve dashboard — auth checked by frontend JS"""
+    return send_from_directory(FRONTEND, "index.html")
 
 @app.route("/login.html")
 def serve_login():
     return send_from_directory(FRONTEND, "login.html")
 
 @app.route("/profile.html")
-@login_required
 def serve_profile():
     return send_from_directory(FRONTEND, "profile.html")
-
-@app.route("/")
-@login_required
-def index():
-    return send_from_directory(FRONTEND, "index.html")
 
 @app.route("/<path:filename>")
 def static_files(filename):
@@ -98,7 +97,7 @@ def static_files(filename):
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  API — WATCHLIST
+#  API — all routes still protected with @login_required
 # ══════════════════════════════════════════════════════════════════════════════
 
 @app.route("/api/watchlist", methods=["GET"])
@@ -132,11 +131,6 @@ def remove_stock(symbol):
         return jsonify({"error": f"{symbol} not found"}), 404
     return jsonify({"message": f"{symbol} removed"})
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  API — QUOTES
-# ══════════════════════════════════════════════════════════════════════════════
-
 @app.route("/api/stocks")
 @login_required
 def get_stocks():
@@ -144,11 +138,6 @@ def get_stocks():
     if not stocks:
         return jsonify([])
     return jsonify(sf.fetch_quotes(stocks))
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  API — CHART
-# ══════════════════════════════════════════════════════════════════════════════
 
 @app.route("/api/stock/<symbol>/chart")
 @login_required
@@ -161,11 +150,6 @@ def get_chart(symbol):
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 400
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  API — GEMINI AI ANALYSIS
-# ══════════════════════════════════════════════════════════════════════════════
 
 @app.route("/api/stock/<symbol>/analyze", methods=["POST"])
 @login_required
@@ -180,11 +164,6 @@ def analyze(symbol):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  API — CHATBOT
-# ══════════════════════════════════════════════════════════════════════════════
-
 @app.route("/api/chat", methods=["POST"])
 @login_required
 def chat():
@@ -197,11 +176,6 @@ def chat():
         return jsonify({"reply": cb.get_chat_response(message, history)})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  API — PORTFOLIO
-# ══════════════════════════════════════════════════════════════════════════════
 
 @app.route("/api/portfolio", methods=["GET"])
 @login_required
