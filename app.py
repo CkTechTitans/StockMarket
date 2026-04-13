@@ -26,7 +26,7 @@ import stock_fetcher   as sf
 import gemini_analysis as ga
 import chatbot         as cb
 import database        as db
-import technical_analysis as ta   # ← ADD THIS LINE
+#import technical_analysis as ta   # ← ADD THIS LINE
 from auth   import auth_bp, init_oauth
 from models import User
 
