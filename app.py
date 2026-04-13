@@ -74,12 +74,14 @@ with app.app_context():
 #  NOTE: / and /index.html have NO @login_required
 #  Auth is checked by the frontend JS itself via /auth/me
 # ══════════════════════════════════════════════════════════════════════════════
-
-@app.route("/")
+@app.route("/", methods=["GET", "HEAD"])
+def index():
+    return send_from_directory(FRONTEND, "index.html")
+'''@app.route("/")
 def index():
     """Serve dashboard — auth checked by frontend JS"""
     return send_from_directory(FRONTEND, "index.html")
-
+'''
 @app.route("/login.html")
 def serve_login():
     return send_from_directory(FRONTEND, "login.html")
@@ -213,11 +215,11 @@ def remove_portfolio(symbol):
 #  RUN
 # ══════════════════════════════════════════════════════════════════════════════
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=not is_prod)
-# ── Run ───────────────────────────────────────────────────────────────────────
 '''if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=not is_prod)'''
+# ── Run ───────────────────────────────────────────────────────────────────────
+if __name__ == "__main__":
     import os
 
     is_prod = bool(os.environ.get("DATABASE_URL"))
@@ -232,4 +234,3 @@ if __name__ == "__main__":
     #app.run(host="0.0.0.0", port=port, debug=not is_prod)
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-'''
