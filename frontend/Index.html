@@ -178,6 +178,23 @@
 <script src="js/chatbot.js"></script>
 <script>loadStocks();</script>
 <script>
+  // Add this at the very TOP of your scripts in index.html
+// Checks if user is logged in, redirects to login if not
+(async function checkAuth() {
+  try {
+    const res = await fetch('/auth/me');
+    if (!res.ok) {
+      window.location.href = '/login.html';
+      return;
+    }
+    const user = await res.json();
+    if (!user.logged_in) {
+      window.location.href = '/login.html';
+    }
+  } catch(e) {
+    window.location.href = '/login.html';
+  }
+})();
 async function loadUserHeader() {
   try {
     const res  = await fetch('/auth/me');
