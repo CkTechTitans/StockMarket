@@ -1,13 +1,9 @@
 """
-app.py
-======
-Market Pulse — with Google Auth + SQLite/PostgreSQL persistence.
-
-Local dev  → SQLite, .env file
-Render     → PostgreSQL, environment variables on dashboard
+app.py - Market Pulse
 """
 
-import os, sys
+import os
+import sys
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -16,9 +12,16 @@ BACKEND  = os.path.join(ROOT, "backend")
 FRONTEND = os.path.join(ROOT, "frontend")
 sys.path.insert(0, BACKEND)
 
+print(f"[startup] ROOT     = {ROOT}")
+print(f"[startup] FRONTEND = {FRONTEND}")
+print(f"[startup] frontend exists = {os.path.exists(FRONTEND)}")
+print(f"[startup] index.html exists = {os.path.exists(os.path.join(FRONTEND, 'index.html'))}")
+print(f"[startup] login.html exists = {os.path.exists(os.path.join(FRONTEND, 'login.html'))}")
+
 from flask import Flask, jsonify, send_from_directory, request, redirect
 from flask_cors import CORS
 from flask_login import LoginManager, login_required, current_user
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 import stock_fetcher   as sf
 import gemini_analysis as ga
@@ -27,11 +30,26 @@ import database        as db
 from auth   import auth_bp, init_oauth
 from models import User
 
+# ── App ───────────────────────────────────────────────────────────────────────
 app = Flask(__name__, static_folder=FRONTEND, static_url_path="")
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-this")
+
+# ── CRITICAL: Tell Flask it's behind Render's HTTPS proxy ────────────────────
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
+# ── Session cookie settings for HTTPS on Render ───────────────────────────────
+is_prod = bool(os.environ.get("DATABASE_URL"))
+app.config.update(
+    SESSION_COOKIE_SECURE   = is_prod,       # HTTPS only on Render
+    SESSION_COOKIE_HTTPONLY = True,
+    SESSION_COOKIE_SAMESITE = "Lax",
+    REMEMBER_COOKIE_SECURE  = is_prod,
+    REMEMBER_COOKIE_HTTPONLY= True,
+)
+
 CORS(app, supports_credentials=True)
 
-# Flask-Login setup
+# ── Flask-Login ───────────────────────────────────────────────────────────────
 login_manager = LoginManager()
 login_manager.init_app(app)
 
@@ -53,10 +71,18 @@ with app.app_context():
     db.init_db()
 
 
-# ── Frontend ──────────────────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════════════
+#  FRONTEND ROUTES
+# ══════════════════════════════════════════════════════════════════════════════
+
 @app.route("/login.html")
 def serve_login():
     return send_from_directory(FRONTEND, "login.html")
+
+@app.route("/profile.html")
+@login_required
+def serve_profile():
+    return send_from_directory(FRONTEND, "profile.html")
 
 @app.route("/")
 @login_required
@@ -65,10 +91,16 @@ def index():
 
 @app.route("/<path:filename>")
 def static_files(filename):
-    return send_from_directory(FRONTEND, filename)
+    file_path = os.path.join(FRONTEND, filename)
+    if os.path.exists(file_path):
+        return send_from_directory(FRONTEND, filename)
+    return jsonify({"error": f"Not found: {filename}"}), 404
 
 
-# ── Watchlist ─────────────────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════════════
+#  API — WATCHLIST
+# ══════════════════════════════════════════════════════════════════════════════
+
 @app.route("/api/watchlist", methods=["GET"])
 @login_required
 def get_watchlist():
@@ -86,7 +118,7 @@ def add_stock():
     if any(s["symbol"] == symbol for s in existing):
         return jsonify({"error": f"{symbol} already in watchlist"}), 409
     try:
-        quote = sf.fetch_quote(symbol)
+        quote         = sf.fetch_quote(symbol)
         quote["name"] = name
         db.add_to_watchlist(current_user.id, symbol, name)
         return jsonify({"message": f"{symbol} added", "quote": quote}), 201
@@ -101,7 +133,10 @@ def remove_stock(symbol):
     return jsonify({"message": f"{symbol} removed"})
 
 
-# ── Quotes ────────────────────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════════════
+#  API — QUOTES
+# ══════════════════════════════════════════════════════════════════════════════
+
 @app.route("/api/stocks")
 @login_required
 def get_stocks():
@@ -111,18 +146,27 @@ def get_stocks():
     return jsonify(sf.fetch_quotes(stocks))
 
 
-# ── Chart ─────────────────────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════════════
+#  API — CHART
+# ══════════════════════════════════════════════════════════════════════════════
+
 @app.route("/api/stock/<symbol>/chart")
 @login_required
 def get_chart(symbol):
     period = request.args.get("period", "30")
     try:
-        return jsonify({"symbol": symbol.upper(), "chart": sf.fetch_chart_data(symbol.upper(), period)})
+        return jsonify({
+            "symbol": symbol.upper(),
+            "chart":  sf.fetch_chart_data(symbol.upper(), period)
+        })
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
 
-# ── Gemini AI Analysis ────────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════════════
+#  API — GEMINI AI ANALYSIS
+# ══════════════════════════════════════════════════════════════════════════════
+
 @app.route("/api/stock/<symbol>/analyze", methods=["POST"])
 @login_required
 def analyze(symbol):
@@ -137,7 +181,10 @@ def analyze(symbol):
         return jsonify({"error": str(e)}), 500
 
 
-# ── Chatbot ───────────────────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════════════
+#  API — CHATBOT
+# ══════════════════════════════════════════════════════════════════════════════
+
 @app.route("/api/chat", methods=["POST"])
 @login_required
 def chat():
@@ -152,7 +199,10 @@ def chat():
         return jsonify({"error": str(e)}), 500
 
 
-# ── Portfolio ─────────────────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════════════
+#  API — PORTFOLIO
+# ══════════════════════════════════════════════════════════════════════════════
+
 @app.route("/api/portfolio", methods=["GET"])
 @login_required
 def get_portfolio():
@@ -185,8 +235,15 @@ def remove_portfolio(symbol):
     return jsonify({"message": f"{symbol} removed"})
 
 
-# ── Run ───────────────────────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════════════
+#  RUN
+# ══════════════════════════════════════════════════════════════════════════════
+
 if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=not is_prod)
+# ── Run ───────────────────────────────────────────────────────────────────────
+'''if __name__ == "__main__":
     import os
 
     is_prod = bool(os.environ.get("DATABASE_URL"))
@@ -201,3 +258,4 @@ if __name__ == "__main__":
     #app.run(host="0.0.0.0", port=port, debug=not is_prod)
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+'''
