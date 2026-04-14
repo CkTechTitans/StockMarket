@@ -5,7 +5,8 @@
    ═══════════════════════════════════════════════ */
 
 //const CHAT_API = "http://localhost:5000/api/chat";
-const API = "";
+//const API = "";
+const CHAT_API = "/api/chat";
 let chatOpen    = false;
 let chatHistory = [];
 

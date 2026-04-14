@@ -1,0 +1,265 @@
+/* ══════════════════════════════════════════════
+   AI ANALYSIS — FULL UPGRADE
+   ══════════════════════════════════════════════ */
+
+/* ── Loading ───────────────────────────────── */
+.ai-loading {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  padding:40px;
+  color:var(--muted);
+  font-size:.85rem;
+}
+
+.ai-spinner {
+  width:36px;
+  height:36px;
+  border:3px solid var(--border);
+  border-top-color:var(--accent);
+  border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+
+/* ── Recommendation Banner ─────────────────── */
+.ai-rec-banner {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:18px 20px;
+  border-radius:14px;
+  margin-bottom:20px;
+  flex-wrap:wrap;
+  gap:14px;
+}
+
+/* BUY */
+.ai-rec-banner.BUY {
+  background:rgba(0,208,156,.1);
+  border:1px solid rgba(0,208,156,.3);
+}
+
+/* HOLD */
+.ai-rec-banner.HOLD {
+  background:rgba(245,158,11,.1);
+  border:1px solid rgba(245,158,11,.3);
+}
+
+/* SELL */
+.ai-rec-banner.SELL {
+  background:rgba(235,87,87,.1);
+  border:1px solid rgba(235,87,87,.3);
+}
+
+/* Left section */
+.ai-rec-left {
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+
+.ai-rec-label {
+  font-size:.7rem;
+  text-transform:uppercase;
+  color:var(--muted);
+}
+
+.ai-rec-value {
+  font-size:1.6rem;
+  font-weight:700;
+  font-family:var(--mono);
+}
+
+.ai-rec-value.BUY { color:var(--green); }
+.ai-rec-value.HOLD { color:#f59e0b; }
+.ai-rec-value.SELL { color:var(--red); }
+
+/* Score Circle */
+.ai-score-ring {
+  width:64px;
+  height:64px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.2rem;
+  font-weight:700;
+  font-family:var(--mono);
+  border:3px solid;
+}
+
+.ai-score-ring.BUY { border-color:var(--green); color:var(--green); }
+.ai-score-ring.HOLD { border-color:#f59e0b; color:#f59e0b; }
+.ai-score-ring.SELL { border-color:var(--red); color:var(--red); }
+
+/* ── Summary ───────────────────────────────── */
+.ai-summary {
+  font-size:.9rem;
+  color:#c4c9d4;
+  line-height:1.7;
+  margin-bottom:20px;
+  padding:14px 16px;
+  background:rgba(255,255,255,.025);
+  border-radius:10px;
+  border-left:3px solid var(--accent);
+}
+
+/* ── Section Blocks (NEW STRUCTURE) ─────────── */
+.ai-block {
+  margin-bottom:18px;
+}
+
+.ai-block-title {
+  font-size:.7rem;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  color:var(--muted);
+  margin-bottom:8px;
+}
+
+/* ── Chips (for trend/valuation/etc) ───────── */
+.ai-chip {
+  display:inline-block;
+  padding:4px 10px;
+  border-radius:20px;
+  font-size:.72rem;
+  font-weight:600;
+  background:rgba(0,208,156,.12);
+  color:var(--accent);
+  margin-right:6px;
+}
+
+.ai-chip.yellow {
+  background:rgba(245,158,11,.12);
+  color:#f59e0b;
+}
+
+.ai-chip.red {
+  background:rgba(235,87,87,.12);
+  color:var(--red);
+}
+
+/* ── Two Column Info Grid ─────────────────── */
+.ai-two-col {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-bottom:20px;
+}
+
+.ai-info-box {
+  background:rgba(255,255,255,.025);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px;
+  transition:all .2s;
+}
+
+.ai-info-box:hover {
+  border-color:rgba(0,208,156,.3);
+}
+
+.ai-info-label {
+  font-size:.65rem;
+  color:var(--muted);
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+
+.ai-info-value {
+  font-size:.95rem;
+  font-weight:600;
+  font-family:var(--mono);
+}
+
+/* ── Lists (Reasons & Risks) ───────────────── */
+.ai-list {
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-bottom:18px;
+}
+
+.ai-list-item {
+  display:flex;
+  align-items:flex-start;
+  gap:8px;
+  font-size:.85rem;
+  color:#c4c9d4;
+  line-height:1.5;
+}
+
+.ai-list-item .dot {
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:var(--accent);
+  margin-top:6px;
+}
+
+.ai-list-item .dot.risk {
+  background:var(--red);
+}
+
+/* ── Outlook ──────────────────────────────── */
+.ai-outlook {
+  font-size:.85rem;
+  color:#c4c9d4;
+  line-height:1.7;
+  padding:14px 16px;
+  background:rgba(255,255,255,.025);
+  border-radius:10px;
+  border-left:3px solid #f59e0b;
+}
+
+/* ── Action Box (NEW 🔥) ───────────────────── */
+.ai-action-box {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  padding:14px 16px;
+  border-radius:12px;
+  background:rgba(0,208,156,.08);
+  border:1px solid rgba(0,208,156,.25);
+  margin-bottom:20px;
+  flex-wrap:wrap;
+}
+
+.ai-action-text {
+  font-size:.9rem;
+  font-weight:600;
+}
+
+.ai-entry {
+  font-family:var(--mono);
+  font-size:.85rem;
+  color:var(--muted);
+}
+
+/* ── Price Target Highlight ───────────────── */
+.ai-target {
+  font-size:1rem;
+  font-weight:700;
+  font-family:var(--mono);
+  color:var(--accent);
+}
+
+/* ── Responsive Fix ───────────────────────── */
+@media(max-width:768px){
+  .ai-two-col {
+    grid-template-columns:1fr;
+  }
+
+  .ai-rec-banner {
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  .ai-score-ring {
+    align-self:flex-end;
+  }
+}
