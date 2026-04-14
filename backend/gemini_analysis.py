@@ -16,7 +16,7 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
   # <- paste your key
 
-MODEL = "gemini-2.5-flash"   # latest fast model
+MODEL = "gemini-3-flash-preview"   # latest fast model
 
 _client = None
 
@@ -46,36 +46,79 @@ def analyze_stock(stock: dict, chart: list) -> dict:
     else:
         price_summary = "No historical data available."
 
-    prompt = f"""You are a senior equity analyst specialising in Indian stock markets (NSE/BSE).
-Analyse the stock below and respond ONLY with a valid JSON object.
-Do NOT include markdown fences, backticks, or any text outside the JSON.
+    prompt = f"""
+You are a senior equity research analyst specializing in Indian stock markets (NSE/BSE).
+
+Your job is to provide COMPLETE stock analysis like a professional brokerage report.
+
+IMPORTANT:
+- Respond ONLY in valid JSON
+- No markdown, no explanation outside JSON
+- Be specific, realistic, and data-driven (avoid generic statements)
 
 Stock Data:
-  Symbol       : {stock.get('symbol')}
-  Name         : {stock.get('name')}
-  Current Price: Rs {stock.get('price')}
-  Day Change   : {stock.get('change')} ({stock.get('change_pct')}%)
-  Open         : Rs {stock.get('open')}
-  High         : Rs {stock.get('high')}
-  Low          : Rs {stock.get('low')}
-  Prev Close   : Rs {stock.get('prev_close')}
-  Volume       : {stock.get('volume')}
-  Date         : {stock.get('date')}
+Symbol: {stock.get('symbol')}
+Name: {stock.get('name')}
+Current Price: Rs {stock.get('price')}
+Day Change: {stock.get('change')} ({stock.get('change_pct')}%)
+Open: Rs {stock.get('open')}
+High: Rs {stock.get('high')}
+Low: Rs {stock.get('low')}
+Prev Close: Rs {stock.get('prev_close')}
+Volume: {stock.get('volume')}
+Date: {stock.get('date')}
 
 Recent 10-Day Price History:
 {price_summary}
 
-Return exactly this JSON structure (fill all fields, no placeholders):
+Return EXACT JSON in this structure:
+
 {{
-  "recommendation": "BUY",
-  "confidence": "High",
-  "sentiment": "Bullish",
-  "score": 7,
-  "summary": "Two sentence news-style brief about this stock today.",
-  "reasons": ["Reason 1", "Reason 2", "Reason 3"],
-  "risks": ["Risk 1", "Risk 2"],
-  "outlook": "One to two sentence 3-month outlook.",
-  "price_target": "Rs 450-480"
+  "recommendation": "BUY | SELL | HOLD",
+  "confidence": "High | Medium | Low",
+  "sentiment": "Bullish | Neutral | Bearish",
+  "score": 1-10,
+
+  "summary": "2-line professional market summary",
+
+  "business": "What the company does and its strength in 1-2 lines",
+
+  "financials": {{
+    "trend": "Growing | Stable | Weak",
+    "profitability": "Strong | متوسط | Weak",
+    "comment": "Short explanation"
+  }},
+
+  "technical": {{
+    "trend": "Uptrend | Sideways | Downtrend",
+    "rsi_signal": "Overbought | Neutral | Oversold",
+    "volume_trend": "Increasing | Decreasing | Stable"
+  }},
+
+  "levels": {{
+    "support": "Rs XXX",
+    "resistance": "Rs XXX"
+  }},
+
+  "valuation": {{
+    "status": "Undervalued | Fair | Overvalued",
+    "comment": "Short reasoning"
+  }},
+
+  "reasons": ["3 strong bullish/bearish reasons"],
+
+  "risks": ["2-3 key risks"],
+
+  "outlook": "2-line 3-month forward view",
+
+  "action": "Clear actionable advice (e.g. Buy on dips, Avoid, Breakout buy)",
+
+  "entry_zone": "Rs XXX - XXX",
+
+  "price_target": "Rs XXX - XXX",
+
+  "time_horizon": "Short-term | Medium-term | Long-term"
+
 }}"""
 
     try:
