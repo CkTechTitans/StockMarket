@@ -8,10 +8,11 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="css/styles.css"/>
 <link rel="stylesheet" href="technical-analysis.css">
+<link rel="stylesheet" href="css/chatbot.css">\
+<link rel="stylesheet" href="css/components/ai-analysis.css">
 </head>
 <body>
 
-<!-- ═══ REPLACE YOUR EXISTING <header> WITH THIS ═══ -->
 <header>
   <div class="logo"><div class="logo-dot"></div>Market Pulse</div>
   <div class="header-right">
@@ -29,8 +30,6 @@
       </svg>
       Add Stock
     </button>
- 
-    <!-- User menu -->
     <div class="user-menu" id="userMenu" style="display:none">
       <div class="user-avatar" id="userAvatar" onclick="toggleUserDropdown()">?</div>
       <div class="user-dropdown" id="userDropdown">
@@ -128,6 +127,7 @@
 <!-- STOCK DETAIL MODAL -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
   <div class="modal" id="modal">
+
     <div class="modal-topbar">
       <div class="modal-sym-wrap">
         <div class="modal-sym-badge" id="mBadge"></div>
@@ -135,29 +135,51 @@
       </div>
       <button class="close-btn" onclick="closeModalDirect()">✕</button>
     </div>
+
     <div class="modal-price-hero">
       <div class="modal-price" id="mPrice"></div>
       <div class="modal-change-badge" id="mChangeBadge"></div>
     </div>
+
     <div class="modal-tabs">
       <button class="tab-btn active" onclick="switchTab('chart',this)">📈 Chart</button>
       <button class="tab-btn" onclick="switchTab('ai',this)">🤖 AI Analysis</button>
     </div>
+
+    <!-- ══ CHART TAB ══════════════════════════════════════════════════ -->
     <div class="tab-panel active" id="tab-chart">
+
+      <!-- Top row: title + period buttons -->
       <div class="chart-controls">
         <div class="chart-title">Price History</div>
         <div class="period-btns">
-          <button class="period-btn active" onclick="changePeriod(7,this)">1W</button>
-          <button class="period-btn" onclick="changePeriod(30,this)">1M</button>
-          <button class="period-btn" onclick="changePeriod(60,this)">2M</button>
-          <button class="period-btn" onclick="changePeriod(90,this)">3M</button>
+          <button class="period-btn"        onclick="changePeriod(7,  this)">1W</button>
+          <button class="period-btn active" onclick="changePeriod(30, this)">1M</button>
+          <button class="period-btn"        onclick="changePeriod(60, this)">2M</button>
+          <button class="period-btn"        onclick="changePeriod(90, this)">3M</button>
         </div>
       </div>
-      
-      <div class="chart-wrap">
-        <canvas id="priceChart"></canvas>
-        <div class="chart-loading" id="chartLoading">Loading chart…</div>
+
+      <!-- Indicator toggle pills -->
+      <div class="indicator-bar">
+        <span class="indicator-bar-label">Overlay</span>
+        <button class="ind-btn active" data-ind="MA50"  onclick="toggleIndicator('MA50',  this)">MA 50</button>
+        <button class="ind-btn active" data-ind="MA200" onclick="toggleIndicator('MA200', this)">MA 200</button>
+        <button class="ind-btn"        data-ind="BB"    onclick="toggleIndicator('BB',    this)">Bollinger</button>
       </div>
+
+      <!-- TA Recommendation banner (filled by JS) -->
+      <div id="taRecommendation"></div>
+
+      <!-- Main price chart -->
+      <div class="chart-wrap" style="position:relative;">
+        <div class="chart-loading" id="chartLoading">
+          <div class="ai-spinner" style="margin-right:8px;"></div>Loading chart…
+        </div>
+        <canvas id="priceChart"></canvas>
+      </div>
+
+      <!-- OHLCV grid -->
       <div class="ohlv-grid">
         <div class="ohlv-item"><div class="ohlv-label">Open</div><div class="ohlv-val" id="dOpen"></div></div>
         <div class="ohlv-item"><div class="ohlv-label">High</div><div class="ohlv-val" id="dHigh" style="color:#34d399"></div></div>
@@ -166,72 +188,127 @@
         <div class="ohlv-item"><div class="ohlv-label">Volume</div><div class="ohlv-val" id="dVol"></div></div>
         <div class="ohlv-item"><div class="ohlv-label">Date</div><div class="ohlv-val" id="dDate" style="font-size:.8rem"></div></div>
       </div>
-    </div>
+
+      <!-- Sub-charts: RSI + MACD + Volume (fade in after load) -->
+      <div id="subChartsWrap" style="opacity:0; transition: opacity 0.35s ease;">
+
+        <div class="sub-chart-divider"></div>
+
+        <!-- RSI -->
+        <div class="sub-chart-block">
+          <div class="sub-chart-header">
+            <span class="sub-chart-title">RSI (14)</span>
+            <div class="sub-chart-legend">
+              <span class="sub-legend-item"><span class="sub-legend-dot" style="background:#a78bfa;height:2px;"></span>RSI</span>
+              <span class="sub-legend-item"><span class="sub-legend-dot" style="background:rgba(235,87,87,0.7);height:2px;"></span>OB 70</span>
+              <span class="sub-legend-item"><span class="sub-legend-dot" style="background:rgba(0,208,156,0.7);height:2px;"></span>OS 30</span>
+            </div>
+          </div>
+          <div class="sub-chart-canvas-wrap">
+            <canvas id="rsiChart"></canvas>
+          </div>
+        </div>
+
+        <div class="sub-chart-divider"></div>
+
+        <!-- MACD -->
+        <div class="sub-chart-block">
+          <div class="sub-chart-header">
+            <span class="sub-chart-title">MACD (12, 26, 9)</span>
+            <div class="sub-chart-legend">
+              <span class="sub-legend-item"><span class="sub-legend-dot" style="background:#60a5fa;height:2px;"></span>MACD</span>
+              <span class="sub-legend-item"><span class="sub-legend-dot" style="background:#f97316;height:2px;"></span>Signal</span>
+              <span class="sub-legend-item"><span class="sub-legend-dot" style="background:rgba(38,166,154,0.7);width:8px;height:8px;border-radius:2px;"></span>Hist</span>
+            </div>
+          </div>
+          <div class="sub-chart-canvas-wrap">
+            <canvas id="macdChart"></canvas>
+          </div>
+        </div>
+
+        <div class="sub-chart-divider"></div>
+
+        <!-- Volume -->
+        <div class="sub-chart-block">
+          <div class="sub-chart-header">
+            <span class="sub-chart-title">Volume</span>
+            <div class="sub-chart-legend">
+              <span class="sub-legend-item"><span class="sub-legend-dot" style="background:rgba(38,166,154,0.6);width:8px;height:8px;border-radius:2px;"></span>Bull</span>
+              <span class="sub-legend-item"><span class="sub-legend-dot" style="background:rgba(239,83,80,0.6);width:8px;height:8px;border-radius:2px;"></span>Bear</span>
+            </div>
+          </div>
+          <div class="sub-chart-canvas-wrap">
+            <canvas id="volChart"></canvas>
+          </div>
+        </div>
+
+        <div class="sub-chart-divider"></div>
+
+        <!-- Detected Patterns -->
+        <div class="sub-chart-block">
+          <div class="sub-chart-header">
+            <span class="sub-chart-title">Detected Patterns</span>
+          </div>
+          <div id="patternList" class="pattern-list"></div>
+        </div>
+
+      </div><!-- /subChartsWrap -->
+    </div><!-- /tab-chart -->
+
+    <!-- ══ AI TAB ═════════════════════════════════════════════════════ -->
     <div class="tab-panel" id="tab-ai">
-      <div id="aiContent"><div class="ai-loading"><div class="ai-spinner"></div>Analysing with Gemini AI…</div></div>
+      <div id="aiContent">
+        <div class="ai-loading"><div class="ai-spinner"></div>Analysing with Gemini AI…</div>
+      </div>
     </div>
-  </div>
-</div>
 
-
+  </div><!-- /modal -->
+</div><!-- /modalOverlay -->
 
 <script src="js/stocks.js"></script>
 <script src="js/modal.js"></script>
-<script src="js/chatbot.js"></script>
+<script src="/js/chatbot.js"></script>
 <script>loadStocks();</script>
 <script>
-  // Add this at the very TOP of your scripts in index.html
-// Checks if user is logged in, redirects to login if not
 (async function checkAuth() {
   try {
     const res = await fetch('/auth/me');
-    if (!res.ok) {
-      window.location.href = '/login.html';
-      return;
-    }
+    if (!res.ok) { window.location.href = '/login.html'; return; }
     const user = await res.json();
-    if (!user.logged_in) {
-      window.location.href = '/login.html';
-    }
-  } catch(e) {
-    window.location.href = '/login.html';
-  }
+    if (!user.logged_in) window.location.href = '/login.html';
+  } catch(e) { window.location.href = '/login.html'; }
 })();
+
 async function loadUserHeader() {
   try {
     const res  = await fetch('/auth/me');
     if (!res.ok) return;
     const user = await res.json();
     if (!user.logged_in) return;
- 
-    const menu = document.getElementById('userMenu');
+    const menu   = document.getElementById('userMenu');
     const avatar = document.getElementById('userAvatar');
     menu.style.display = 'block';
- 
-    // Set avatar — photo or initial
     if (user.picture) {
       avatar.innerHTML = `<img src="${user.picture}" onerror="this.parentElement.textContent='${user.name[0].toUpperCase()}'"/>`;
     } else {
       avatar.textContent = user.name[0].toUpperCase();
     }
- 
     document.getElementById('dropdownName').textContent  = user.name;
     document.getElementById('dropdownEmail').textContent = user.email;
   } catch(e) {}
 }
- 
+
 function toggleUserDropdown() {
   document.getElementById('userDropdown').classList.toggle('open');
 }
- 
-// Close dropdown when clicking outside
+
 document.addEventListener('click', function(e) {
   const menu = document.getElementById('userMenu');
   if (menu && !menu.contains(e.target)) {
     document.getElementById('userDropdown').classList.remove('open');
   }
 });
- 
+
 loadUserHeader();
 </script>
 </body>
