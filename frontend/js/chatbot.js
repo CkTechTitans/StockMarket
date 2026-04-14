@@ -45,21 +45,18 @@ function initChatbot() {
       </div>
 
       <div class="chat-input-row">
-        <input id="chatInput" type="text" placeholder="Ask about Indian stocks..."
-          autocomplete="off"
-          onkeydown="if(event.key==='Enter') sendChat()"/>
-        <button id="chatSendBtn" onclick="sendChat()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2.5"
-            stroke-linecap="round" stroke-linejoin="round">
-            <line x1="22" y1="2" x2="11" y2="13"/>
-            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-          </svg>
-        </button>
-      </div>
-    </div>
-  `);
+  <input id="chatInput" type="text" placeholder="Ask about Indian stocks..."
+    autocomplete="off"
+    onkeydown="if(event.key==='Enter') sendChat()"/>
 
+  <button id="voiceBtn" onclick="startVoice()">🎤</button>
+
+  <button id="chatSendBtn" onclick="sendChat()">
+    ➤
+  </button>
+</div>
+  `);
+  makeChatDraggable();
   appendBotMsg("👋 Hi! I'm your Indian stock market assistant. Ask me anything — stocks, sectors, IPOs, trading strategies, or market terms.");
 }
 
@@ -82,16 +79,40 @@ function appendUserMsg(text) {
   scrollChat();
 }
 
-function appendBotMsg(text) {
-  const time = new Date().toLocaleTimeString("en-IN", {hour:"2-digit", minute:"2-digit"});
-  document.getElementById("chatMessages").insertAdjacentHTML("beforeend",
-    `<div class="chat-msg bot">
-      <div class="chat-bubble bot-bubble">${text}</div>
-      <div class="chat-time">${time}</div>
-    </div>`);
-  scrollChat();
-}
+function appendBotMsgStreaming(text) {
+  const chat = document.getElementById("chatMessages");
 
+  const time = new Date().toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "chat-msg bot";
+
+  wrapper.innerHTML = `
+    <div class="chat-bubble bot-bubble" id="streamingBubble"></div>
+    <div class="chat-time">${time}</div>
+  `;
+
+  chat.appendChild(wrapper);
+  scrollChat();
+
+  const bubble = wrapper.querySelector("#streamingBubble");
+
+  let i = 0;
+
+  function typeChar() {
+    if (i < text.length) {
+      bubble.innerHTML = formatBotText(text.slice(0, i + 1));
+      i++;
+      scrollChat();
+      setTimeout(typeChar, 12); // speed (lower = faster)
+    }
+  }
+
+  typeChar();
+}
 function showTyping() {
   document.getElementById("chatMessages").insertAdjacentHTML("beforeend",
     `<div class="chat-msg bot" id="typingMsg">
@@ -138,7 +159,7 @@ async function sendChat() {
     const data = await res.json();
     hideTyping();
     const reply = data.reply || data.error || "Sorry, something went wrong.";
-    appendBotMsg(reply.replace(/\n/g, "<br>"));
+    appendBotMsgStreaming(reply);
     chatHistory.push({ role: "model", text: reply });
   } catch(e) {
     hideTyping();
@@ -158,4 +179,123 @@ if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initChatbot);
 } else {
   initChatbot();
+}
+function startVoice() {
+  const btn = document.getElementById("voiceBtn");
+  const input = document.getElementById("chatInput");
+
+  if (!('webkitSpeechRecognition' in window)) {
+    alert("Voice not supported in this browser");
+    return;
+  }
+
+  const rec = new webkitSpeechRecognition();
+  rec.lang = "en-IN";
+  rec.continuous = false;
+
+  // 🎤 START RECORDING UI
+  btn.classList.add("recording");
+  input.classList.add("recording");
+  input.placeholder = "🎤 Listening... speak now";
+
+  rec.start();
+
+  rec.onresult = (e) => {
+    const text = e.results[0][0].transcript;
+    input.value = text;
+  };
+
+  rec.onend = () => {
+    // 🔴 STOP RECORDING UI
+    btn.classList.remove("recording");
+    input.classList.remove("recording");
+    input.placeholder = "Ask about Indian stocks...";
+  };
+
+  rec.onerror = () => {
+    btn.classList.remove("recording");
+    input.classList.remove("recording");
+    input.placeholder = "Ask about Indian stocks...";
+  };
+}
+function makeChatDraggable() {
+  const panel = document.getElementById("chatPanel");
+  const header = panel.querySelector(".chat-header");
+
+  let isDragging = false;
+  let offsetX = 0;
+  let offsetY = 0;
+
+  header.addEventListener("mousedown", (e) => {
+    isDragging = true;
+
+    const rect = panel.getBoundingClientRect();
+    offsetX = e.clientX - rect.left;
+    offsetY = e.clientY - rect.top;
+
+    panel.style.transition = "none"; // smoother drag
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (!isDragging) return;
+
+    panel.style.left = (e.clientX - offsetX) + "px";
+    panel.style.top  = (e.clientY - offsetY) + "px";
+
+    panel.style.right = "auto";
+    panel.style.bottom = "auto";
+  });
+
+  document.addEventListener("mouseup", () => {
+    isDragging = false;
+  });
+}
+let isDragging = false;
+let offsetX, offsetY;
+
+const panel = document.getElementById("chatPanel");
+const header = document.querySelector(".chat-header");
+
+header.addEventListener("mousedown", (e) => {
+  isDragging = true;
+  offsetX = e.clientX - panel.offsetLeft;
+  offsetY = e.clientY - panel.offsetTop;
+  header.style.cursor = "grabbing";
+});
+
+document.addEventListener("mousemove", (e) => {
+  if (!isDragging) return;
+  panel.style.left = (e.clientX - offsetX) + "px";
+  panel.style.top  = (e.clientY - offsetY) + "px";
+  panel.style.right = "auto";
+  panel.style.bottom = "auto";
+});
+
+document.addEventListener("mouseup", () => {
+  isDragging = false;
+  header.style.cursor = "grab";
+});
+
+function formatBotText(text) {
+  let formatted = text;
+
+  // Bold headings
+  formatted = formatted.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+
+  // Convert bullets
+  formatted = formatted.replace(/^\s*[\*\-]\s+(.*)$/gm, "<li>$1</li>");
+
+  // Wrap list properly
+  formatted = formatted.replace(/(<li>.*<\/li>)/gs, "<ul class='chat-list'>$1</ul>");
+
+  // Highlight keywords
+  formatted = formatted.replace(
+    /\b(FII|DII|IPO|P\/E|RSI|MACD|Sensex|Nifty)\b/g,
+    "<span class='highlight'>$1</span>"
+  );
+
+  // Line breaks
+  formatted = formatted.replace(/\n/g, "<br>");
+
+  return formatted;
 }

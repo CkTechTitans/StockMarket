@@ -22,11 +22,11 @@ from flask_cors import CORS
 from flask_login import LoginManager, login_required, current_user
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-import stock_fetcher   as sf
-import gemini_analysis as ga
-import chatbot         as cb
-import database        as db
-#import technical_analysis as ta   # ← ADD THIS LINE
+import stock_fetcher      as sf
+import gemini_analysis    as ga
+import chatbot            as cb
+import database           as db
+import technical_analysis as ta
 from auth   import auth_bp, init_oauth
 from models import User
 
@@ -72,17 +72,12 @@ with app.app_context():
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  FRONTEND ROUTES
-#  NOTE: / and /index.html have NO @login_required
-#  Auth is checked by the frontend JS itself via /auth/me
 # ══════════════════════════════════════════════════════════════════════════════
+
 @app.route("/", methods=["GET", "HEAD"])
 def index():
     return send_from_directory(FRONTEND, "index.html")
-'''@app.route("/")
-def index():
-    """Serve dashboard — auth checked by frontend JS"""
-    return send_from_directory(FRONTEND, "index.html")
-'''
+
 @app.route("/login.html")
 def serve_login():
     return send_from_directory(FRONTEND, "login.html")
@@ -100,7 +95,7 @@ def static_files(filename):
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  API — all routes still protected with @login_required
+#  API — WATCHLIST
 # ══════════════════════════════════════════════════════════════════════════════
 
 @app.route("/api/watchlist", methods=["GET"])
@@ -134,6 +129,11 @@ def remove_stock(symbol):
         return jsonify({"error": f"{symbol} not found"}), 404
     return jsonify({"message": f"{symbol} removed"})
 
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  API — STOCKS & CHARTS
+# ══════════════════════════════════════════════════════════════════════════════
+
 @app.route("/api/stocks")
 @login_required
 def get_stocks():
@@ -145,6 +145,7 @@ def get_stocks():
 @app.route("/api/stock/<symbol>/chart")
 @login_required
 def get_chart(symbol):
+    """Plain OHLCV chart — kept for backward compatibility."""
     period = request.args.get("period", "30")
     try:
         return jsonify({
@@ -153,6 +154,41 @@ def get_chart(symbol):
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+@app.route("/api/chart/<symbol>", methods=["GET"])
+@login_required
+def get_enriched_chart(symbol):
+    """
+    Enriched chart with indicators + signals + patterns.
+    Query params:
+      period (int, default 90) — look-back days
+    """
+    period = request.args.get("period", "90")
+    try:
+        result = ta.analyse(symbol.upper(), period)
+        return jsonify(result), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 404
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": f"Analysis failed: {str(e)}"}), 500
+
+@app.route("/api/stock/<symbol>/recommendation", methods=["GET"])
+@login_required
+def get_recommendation(symbol):
+    """Summary recommendation without full chart payload."""
+    period = request.args.get("period", "90")
+    try:
+        result = ta.analyse(symbol.upper(), period)
+        result.pop("chart", None)
+        return jsonify(result), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 404
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": f"Recommendation failed: {str(e)}"}), 500
 
 @app.route("/api/stock/<symbol>/analyze", methods=["POST"])
 @login_required
@@ -166,13 +202,11 @@ def analyze(symbol):
         return jsonify(ga.analyze_stock(stock, chart))
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-@app.route("/api/chart/<symbol>", methods=["GET"])
-@login_required
-def get_enriched_chart(symbol): ...
 
-@app.route("/api/stock/<symbol>/recommendation", methods=["GET"])
-@login_required
-def get_recommendation(symbol): ...
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  API — CHAT
+# ══════════════════════════════════════════════════════════════════════════════
 
 @app.route("/api/chat", methods=["POST"])
 @login_required
@@ -186,6 +220,11 @@ def chat():
         return jsonify({"reply": cb.get_chat_response(message, history)})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  API — PORTFOLIO
+# ══════════════════════════════════════════════════════════════════════════════
 
 @app.route("/api/portfolio", methods=["GET"])
 @login_required
@@ -223,13 +262,7 @@ def remove_portfolio(symbol):
 #  RUN
 # ══════════════════════════════════════════════════════════════════════════════
 
-'''if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=not is_prod)'''
-# ── Run ───────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    import os
-
     is_prod = bool(os.environ.get("DATABASE_URL"))
 
     print("\n" + "=" * 52)
@@ -238,7 +271,5 @@ if __name__ == "__main__":
     print(f"  URL  : http://localhost:5000")
     print("=" * 52 + "\n")
 
-    #port = int(os.environ.get("PORT", 5000))
-    #app.run(host="0.0.0.0", port=port, debug=not is_prod)
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
